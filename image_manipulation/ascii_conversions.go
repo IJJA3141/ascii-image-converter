@@ -16,6 +16,10 @@ limitations under the License.
 
 package image_conversions
 
+import (
+	"math"
+)
+
 var (
 	// Reference taken from http://paulbourke.net/dataformats/asciiart/
 	asciiTableSimple   = " .:-=+*#%@"
@@ -280,4 +284,120 @@ func getBrailleChar(x, y int, negative bool, imgSet [][]AsciiPixel) string {
 	}
 
 	return string(brailleChar)
+}
+
+func Convolution(matrix [][]int, kernel [][]int) [][]int {
+
+	result := make([][]int, len(matrix))
+	rj := len(kernel[0]) / 2
+	ri := len(kernel) / 2
+
+	for i := range result {
+		result[i] = make([]int, len(matrix[0]))
+	}
+
+	for m, col := range result {
+		for n := range col {
+
+			for i, kerCol := range kernel {
+
+				x := m - ri + i
+
+				if x < 0 {
+					x = 0
+				} else {
+					if x >= len(result) {
+						x = len(result) - 1
+					}
+				}
+
+				for j := range kerCol {
+
+					y := n - rj + j
+
+					if y < 0 {
+						y = 0
+					} else {
+						if y >= len(col) {
+							y = len(col) - 1
+						}
+					}
+
+					result[m][n] += matrix[x][y] * kernel[i][j]
+				}
+			}
+		}
+	}
+
+	return result
+}
+
+type PixelAngle struct {
+	Angle    uint16
+	Gradiant int
+	Char     string
+	X        int
+	Y        int
+}
+
+// apply the Sobel filter to a grayscale matrix
+// returns a matrix of angles at each pixel
+func SobelFilter(grayscale [][]int, threshold float64) []PixelAngle {
+
+	gX := Convolution(grayscale, [][]int{
+		{1, 0, -1},
+		{2, 0, -2},
+		{1, 0, -1},
+	})
+
+	gY := Convolution(grayscale, [][]int{
+		{1, 2, 1},
+		{0, 0, 0},
+		{-1, -2, -1},
+	})
+
+	var angles []PixelAngle
+
+	for m, col := range grayscale {
+		for n := range col {
+
+			gradiant := math.Sqrt(float64(gY[m][n] ^ 2 + gX[m][n] ^ 2))
+
+			if gradiant < threshold {
+				continue
+			}
+
+			var pixel PixelAngle
+
+			pixel.Gradiant = int(gradiant)
+			pixel.Angle = uint16(math.Atan2(float64(gY[m][n]), float64(gX[m][n]))/math.Pi*180 + 180)
+			pixel.Char = AngleToAscii(pixel.Angle)
+			pixel.X = m
+			pixel.Y = n
+
+			angles = append(angles, pixel)
+		}
+	}
+
+	return angles
+}
+
+func AngleToAscii(angle uint16) string {
+	if angle < 23 {
+		return "-"
+	}
+
+	if angle < 76 {
+		return "/"
+	}
+
+	if angle < 111 {
+		return "|"
+	}
+
+	if angle < 157 {
+		return "\\"
+	}
+
+	return "-"
 }
