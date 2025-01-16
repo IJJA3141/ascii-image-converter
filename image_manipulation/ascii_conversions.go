@@ -333,7 +333,7 @@ func Convolution(matrix [][]int, kernel [][]int) [][]int {
 }
 
 type PixelAngle struct {
-	Angle    uint16
+	Angle    float64
 	Gradiant int
 	Char     string
 	X        int
@@ -370,7 +370,8 @@ func SobelFilter(grayscale [][]int, threshold float64) []PixelAngle {
 			var pixel PixelAngle
 
 			pixel.Gradiant = int(gradiant)
-			pixel.Angle = uint16(math.Atan2(float64(gY[m][n]), float64(gX[m][n]))/math.Pi*180 + 180)
+
+			pixel.Angle = math.Atan2(float64(gY[m][n]), float64(gX[m][n]))
 			pixel.Char = AngleToAscii(pixel.Angle)
 			pixel.X = m
 			pixel.Y = n
@@ -382,22 +383,67 @@ func SobelFilter(grayscale [][]int, threshold float64) []PixelAngle {
 	return angles
 }
 
-func AngleToAscii(angle uint16) string {
-	if angle < 23 {
-		return "-"
-	}
-
-	if angle < 76 {
-		return "/"
-	}
-
-	if angle < 111 {
+// takes angle from -π and π
+// and returns the corresponding ascii angle
+func AngleToAscii(angle float64) string {
+	if angle < -7*math.Pi/8 {
 		return "|"
 	}
 
-	if angle < 157 {
+	if angle < -5*math.Pi/8 {
+		return "/"
+	}
+
+	if angle < -3*math.Pi/8 {
+		return "-"
+	}
+
+	if angle < -math.Pi/8 {
 		return "\\"
 	}
 
-	return "-"
+	if angle < math.Pi/8 {
+		return "|"
+	}
+
+	if angle < 3*math.Pi/8 {
+		return "/"
+	}
+
+	if angle < 5*math.Pi/8 {
+		return "-"
+	}
+
+	if angle < 7*math.Pi/8 {
+		return "\\"
+	}
+
+	return "|"
+}
+
+func AddEdgeDetection(asciiSet [][]AsciiChar, imgSet [][]AsciiPixel, threshold float64) [][]AsciiChar {
+	var (
+		// https://en.wikipedia.org/wiki/Grayscale
+		cr = 0.2126
+		cb = 0.7152
+		cg = 0.0722
+	)
+
+	grayscale := make([][]int, len(imgSet))
+
+	for i, col := range imgSet {
+		grayscale[i] = make([]int, len(col))
+
+		for j := range imgSet {
+			grayscale[i][j] = int(float64(imgSet[i][j].grayscaleValue[0])*cr + float64(imgSet[i][j].grayscaleValue[1])*cb + float64(imgSet[i][j].grayscaleValue[2])*cg)
+		}
+	}
+
+	edges := SobelFilter(grayscale, threshold)
+
+	for _, edge := range edges {
+		asciiSet[edge.X][edge.Y].Simple = edge.Char
+	}
+
+	return asciiSet
 }

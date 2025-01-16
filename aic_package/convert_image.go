@@ -65,6 +65,10 @@ func pathIsImage(imagePath, urlImgName string, pathIsURl bool, urlImgBytes, pipe
 		return "", err
 	}
 
+	if edgeDetection {
+		asciiSet = imgManip.AddEdgeDetection(asciiSet, imgSet, 2)
+	}
+
 	// Save ascii art as .png image before printing it, if --save-img flag is passed
 	if saveImagePath != "" {
 		if err := createImageToSave(

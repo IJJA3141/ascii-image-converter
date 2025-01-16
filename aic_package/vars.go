@@ -61,8 +61,7 @@ type Flags struct {
 
 	// Pass custom ascii art characters as a string.
 	// e.g. " .-=+#@".
-	// This overrides Flags.Complex
-	CustomMap string
+	// This overrides Flags.Complex CustomMap string
 
 	// Flip ascii art horizontally
 	FlipX bool
@@ -102,6 +101,10 @@ type Flags struct {
 	// If Flags.SaveImagePath, Flags.SaveTxtPath or Flags.SaveGifPath are set, then don't
 	// print on terminal
 	OnlySave bool
+
+	// Apply SobelFeldman edge detection in addition to previus modification.
+	// Shoul be compatible with other options
+	EdgeDetection bool
 }
 
 var (
@@ -128,4 +131,5 @@ var (
 	dither        bool
 	onlySave      bool
 	inputIsGif    bool
+	edgeDetection bool
 )

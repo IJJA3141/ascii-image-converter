@@ -53,6 +53,7 @@ var (
 	threshold     int
 	dither        bool
 	onlySave      bool
+	edgeDetection bool
 
 	// Root commands
 	rootCmd = &cobra.Command{
@@ -91,6 +92,7 @@ var (
 				Threshold:           threshold,
 				Dither:              dither,
 				OnlySave:            onlySave,
+				EdgeDetection:       edgeDetection,
 			}
 
 			if args[0] == "-" {
@@ -152,6 +154,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&braille, "braille", "b", false, "Use braille characters instead of ascii\nTerminal must support braille patterns properly\n(Overrides --complex and --map flags)\n")
 	rootCmd.PersistentFlags().IntVar(&threshold, "threshold", 0, "Threshold for braille art\nValue between 0-255 is accepted\ne.g. --threshold 170\n(Defaults to 128)\n")
 	rootCmd.PersistentFlags().BoolVar(&dither, "dither", false, "Apply dithering on image for braille\nart conversion\n(Only applicable with --braille flag)\n(Negates --threshold flag)\n")
+	rootCmd.PersistentFlags().BoolVar(&edgeDetection, "edgeDetection", false, "Apply edge detection on image\n\n")
+	rootCmd.PersistentFlags().BoolVarP(&grayscale, "grayscale", "g", false, "Display grayscale ascii art\n(Inverts with --negative flag)\n(Overrides --font-color flag)\n")
 	rootCmd.PersistentFlags().BoolVarP(&grayscale, "grayscale", "g", false, "Display grayscale ascii art\n(Inverts with --negative flag)\n(Overrides --font-color flag)\n")
 	rootCmd.PersistentFlags().BoolVarP(&complex, "complex", "c", false, "Display ascii characters in a larger range\nMay result in higher quality\n")
 	rootCmd.PersistentFlags().BoolVarP(&full, "full", "f", false, "Use largest dimensions for ascii art\nthat fill the terminal width\n(Overrides --dimensions, --width and --height flags)\n")
